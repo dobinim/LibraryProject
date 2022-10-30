@@ -1,0 +1,26 @@
+package com.team.lib.command;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.ui.Model;
+
+import com.team.lib.dao.LibDao;
+import com.team.lib.dto.QnAAnswerDto;
+import com.team.lib.util.Constant;
+
+public class QnAAnswerCommand implements LibCommand {
+
+	@Override
+	public void execute(HttpServletRequest request, Model model) {
+
+		LibDao ldao = Constant.ldao;
+		
+		String qnanum = request.getParameter("qnaNo");
+		int qnaNo = Integer.parseInt(qnanum);
+		String answerWriter = request.getParameter("answerWriter");
+		String answerContent = request.getParameter("answerContent");
+		
+		ldao.qnaAnswerOK(answerWriter, answerContent, qnaNo);
+	}
+
+}

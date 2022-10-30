@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.lib.dao.ILipDao">
+
+	<!-- 회원가입 --> 
+	<insert id="join" parameterType="com.team.lib.dto.LibUserDto">
+		INSERT INTO LIBRARYUSER (PNAME, PID, PPW, PPWCHECK, PMAIL1, PMAIL2, BIRTH1, BIRTH2, BIRTH3, PPN1, PPN2, PPN3, POSTCODE, ADDRESS, DETAILADDRESS, EXTRAADDRESS)
+		VALUES (#{pname}, #{pid}, #{ppw}, #{ppwcheck}, #{pmail1}, #{pmail2}, #{birth1}, #{birth2}, #{birth3}, #{ppn1}, #{ppn2}, #{ppn3}, #{postcode}, #{address}, #{detailaddress}, #{extraaddress})
+	</insert>
+	
+	<!-- 아이디 중복체크 -->
+	<select id="idCheck" parameterType="String" resultType="int">
+		SELECT COUNT (pid) FROM LIBRARYUSER WHERE PID = #{pid}
+	</select>
+	
+	<!-- 로그인 -->
+	<select id="login" parameterType="String" resultType="com.team.lib.dto.LibUserDto">
+		SELECT * FROM LIBRARYUSER WHERE PID = #{pid}
+	</select>
+	
+	<!-- 회원정보 수정 -->
+	<update id="update_info" parameterType="com.team.lib.dto.LibUserDto">
+		UPDATE LIBRARYUSER 
+		SET PNAME = #{pname}, PMAIL1 = #{pmail1}, PMAIL2 = #{pmail2}, BIRTH1 = #{birth1}, BIRTH2 = #{birth2}, BIRTH3 = #{birth3}, PPN1 = #{ppn1}, PPN2 = #{ppn2}, PPN3 = #{ppn3},
+			POSTCODE = #{postcode}, ADDRESS = #{address}, DETAILADDRESS = #{detailaddress}, EXTRAADDRESS = #{extraaddress} 
+		WHERE PID = #{pid}
+	</update>
+	
+	<!-- 비밀번호 확인 -->
+	<select id="pwCheck" parameterType="String" resultType="String">
+		SELECT PPW FROM LIBRARYUSER WHERE PID = #{pid} 
+	</select>
+	
+	<!-- 비밀번호 수정 -->
+	<update id="update_pw">
+		UPDATE LIBRARYUSER 
+		SET PPW = #{ppw}, PPWCHECK = #{ppwcheck} 
+		WHERE PID = #{pid}
+	</update>
+	
+	<!-- qna 리스트 불러오기 -->
+	<select id="qnaList" resultType="com.team.lib.dto.QnADto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM QNA ORDER BY QNANO DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- qna 등록 -->
+	<insert id="writeQnAOK" parameterType="com.team.lib.dto.QnADto">
+		INSERT INTO QNA (QNANO, QNATITLE, QNACONTENT, QNAWRITER)
+		VALUES (QNA_SEQ.NEXTVAL, #{qnaTitle}, #{qnaContent}, #{qnaWriter})
+	</insert>
+	
+	<!-- qna 상세보기 -->
+	<select id="qna_view" parameterType="int" resultType="com.team.lib.dto.QnADto">
+		SELECT * FROM QNA WHERE QNANO = #{qnaNo}
+	</select>
+	
+	<!-- qna 페이징 -->
+	<select id="qna_pageList" parameterType="int" resultType="com.team.lib.dto.QnADto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM QNA ORDER BY QNANO DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- qna 수정 -->
+	<update id="qnaModify">
+		UPDATE QNA SET QNATITLE = #{qnaTitle}, QNACONTENT = #{qnaContent}, QNAWRITER = #{qnaWriter}
+		WHERE QNANO = #{qnaNo}
+	</update>
+	
+	<!-- qna 삭제 -->
+	<delete id="qnaDelete" parameterType="int">
+		DELETE FROM QNA WHERE QNANO = #{qnaNo}
+	</delete>
+	
+	<!-- qna 답변 등록 -->
+	<insert id="qnaAnswerOK" parameterType="com.team.lib.dto.QnAAnswerDto">
+		INSERT INTO QNA_ANSWER (ANSWERNO, ANSWERWRITER, ANSWERCONTENT, QNANO)
+		VALUES (QNA_ANSWER_SEQ.NEXTVAL, #{answerWriter}, #{answerContent}, #{qnaNo}) 
+	</insert>
+	
+	<!-- qna 답변 보기 -->
+	<select id="qna_answer" parameterType="int" resultType="com.team.lib.dto.QnAAnswerDto">
+		SELECT * FROM QNA_ANSWER WHERE QNANO = #{qnaNo}
+	</select>
+	
+	<!-- qna 검색 -->
+	<select id="qnaSearch" resultType="com.team.lib.dto.QnADto">
+		SELECT * FROM QNA WHERE 
+		<choose>
+			<when test="type != null and type.equals('title')">
+				QNATITLE LIKE '%' || #{keyword} || '%' ORDER BY QNANO DESC
+			</when>
+			<when test="type != null and type.equals('content')">
+				QNACONTENT LIKE '%' || #{keyword} || '%' ORDER BY QNANO DESC
+			</when>
+			<when test="type != null and type.equals('writer')">
+				QNAWRITER LIKE #{keyword} ORDER BY QNANO DESC
+			</when>
+		</choose>
+	</select>
+	
+	<!-- 신간도서 리스트 불러오기 -->
+	<select id="bookNewList" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE YEAR = '2022' ORDER BY BOOKID DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 신간도서 검색 -->
+	<select id="newListSearch" resultType="com.team.lib.dto.BookListDto">
+		SELECT * FROM BOOK_INFO WHERE YEAR = '2022'
+		<choose>
+			<when test="type != null and type.equals('title')">
+				AND BOOKTITLE LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+			<when test="type != null and type.equals('writer')">
+				AND WRITER LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+		</choose>
+	</select>	
+	
+	<!-- 메인화면 신간도서 리스트(4개까지) -->
+	<select id="bookList4" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE YEAR = '2022' ORDER BY BOOKID DESC)A)
+			WHERE RNUM < 5
+		]]>
+	</select>
+	
+	<!-- 신간도서 페이징 -->
+	<select id="newList_page" parameterType="int" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE YEAR = '2022' ORDER BY BOOKID DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 추천도서 리스트 불러오기 -->
+	<select id = "recList" parameterType = "int" resultType = "com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE RECOMMEND = 1 ORDER BY BOOKID DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 추천도서 검색 -->
+	<select id="recListSearch" resultType="com.team.lib.dto.BookListDto">
+		SELECT * FROM BOOK_INFO WHERE RECOMMEND = 1
+		<choose>
+			<when test="type != null and type.equals('title')">
+				AND BOOKTITLE LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+			<when test="type != null and type.equals('writer')">
+				AND WRITER LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+		</choose>
+	</select>
+
+	<!-- 메인화면 추천도서 리스트(4개까지) -->
+	<select id="recBookList4" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE RECOMMEND = 1 ORDER BY BOOKID DESC)A)
+			WHERE RNUM < 5
+		]]>
+	</select>
+	
+	<!-- 추천도서 페이징 -->
+	<select id="recList_page" parameterType="int" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE RECOMMEND = 1 ORDER BY BOOKID DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 베스트셀러 검색 -->
+	<select id="bestSellerSearch" resultType="com.team.lib.dto.BookListDto">
+		SELECT * FROM BOOK_INFO WHERE BESTSELLER = 1
+		<choose>
+			<when test="type != null and type.equals('title')">
+				AND BOOKTITLE LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+			<when test="type != null and type.equals('writer')">
+				AND WRITER LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+		</choose>
+	</select>
+
+	<!-- 베스트셀러 리스트 불러오기 -->
+	<select id = "bookBestList" parameterType = "int" resultType = "com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE BESTSELLER = 1 ORDER BY BOOKID DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 메인화면 베스트셀러 리스트(4개까지) -->
+	<select id="bestBookList4" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE BESTSELLER = 1 ORDER BY BOOKID DESC)A)
+			WHERE RNUM < 5
+		]]>
+	</select>
+	
+	<!-- 베스트셀러 페이징 -->
+	<select id="bestList_page" parameterType="int" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO WHERE BESTSELLER = 1 ORDER BY BOOKID DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 도서 등록 -->
+	<insert id="bookRegistration" parameterType="com.team.lib.dto.BookListDto">
+		INSERT INTO BOOK_INFO (BOOKID, BOOKTITLE, BOOKORITITLE, WRITER, BOOKTYPE, PUBLISHER, FORM, ISBN, IMG, BOOKCONTENT, BOOKWRITER, BOOKINDEX, GENRE, YEAR)
+		VALUES (BOOK_INFO_SEQ.NEXTVAL, #{bookTitle}, #{bookOriTitle}, #{writer}, #{bookType}, #{publisher}, #{form}, #{isbn}, #{img}, #{bookContent}, #{bookWriter}, #{bookIndex}, #{genre}, #{year})
+	</insert>
+	
+	<!-- 도서 상세보기 -->
+	<select id="content_view" parameterType="int" resultType="com.team.lib.dto.BookListDto">
+		SELECT * FROM BOOK_INFO WHERE BOOKID = #{bookId}
+	</select>
+	
+	<!-- 도서 서평 등록 -->
+	<insert id="bookComment" parameterType="com.team.lib.dto.BookCommentDto">
+		INSERT INTO BOOK_COMMENT (COMMENTNO, COMMENTWRITER, COMMENTCONTENT, BOOKID)
+		VALUES (BOOK_COMMENT_SEQ.NEXTVAL, #{commentWriter}, #{commentContent}, #{bookId}) 
+	</insert>
+	
+	<!-- 도서 서평 보기 -->
+	<select id="book_comment" parameterType="int" resultType="com.team.lib.dto.BookCommentDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_COMMENT WHERE BOOKID = #{bookID} ORDER BY COMMENTNO DESC)A)
+			WHERE RNUM < 4
+		]]>
+	</select>
+	
+	<!-- 서평 삭제 -->
+	<delete id="commentDel" parameterType="com.team.lib.dto.BookCommentDto">
+		DELETE FROM BOOK_COMMENT WHERE COMMENTNO = #{commentNo}
+	</delete>
+	
+	<!-- 도서 소장 현황 보기 -->
+	<select id="bookBorrow_info" parameterType="int" resultType="com.team.lib.dto.BookBorrowInfoDto">
+		SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+		FROM(SELECT * FROM BOOK_BORROW_INFO WHERE BOOKID = #{bookID} ORDER BY BORROWID DESC)A)
+	</select>
+	
+	<!-- 도서 소장 등록 -->
+	<insert id="plus_possession" parameterType="com.team.lib.dto.BookBorrowInfoDto">
+		INSERT INTO BOOK_BORROW_INFO (BORROWID, ORGANNAME, REFERENCEROOM, CALLNUM, REGINUM, BOOKPOSSIBLE, BOOKING, BOOKID)
+		VALUES (BOOK_BORROW_INFO_SEQ.NEXTVAL, #{organName}, #{referenceRoom}, #{callNum}, #{regiNum}, #{bookPossible}, #{booking}, #{bookId}) 
+	</insert>
+	
+	<!-- 도서 대출 -->
+	<update id="bookBorrow" parameterType="com.team.lib.dto.BookBorrowInfoDto">
+		UPDATE BOOK_BORROW_INFO SET BOOKPOSSIBLE = '대출중' WHERE BORROWID = #{borrowId}
+	</update>
+	
+	<!-- 도서 반납 -->
+	<update id="bookReturn" parameterType="com.team.lib.dto.BookBorrowInfoDto">
+		UPDATE BOOK_BORROW_INFO SET BOOKPOSSIBLE = '대출가능' WHERE BORROWID = #{borrowId}
+	</update>
+	
+	<!-- 도서 대출시 예약 페이지의 대출상태 변경 -->
+	<update id="bookReservationState" parameterType="com.team.lib.dto.BookReservationDto">
+		UPDATE BOOK_RESERVATION SET BOOKPOSSIBLE = '대출중' WHERE BORROWID = #{borrowId}
+	</update>
+	
+	<!-- 도서 반납시 예약 페이지의 대출상태 변경 -->
+	<update id="bookReservationState2" parameterType="com.team.lib.dto.BookReservationDto">
+		UPDATE BOOK_RESERVATION SET BOOKPOSSIBLE = '대출가능' WHERE BORROWID = #{borrowId}
+	</update>
+	
+	<!-- 공지사항 목록 -->
+	<select id = "nList" parameterType = "int" resultType = "com.team.lib.dto.nDto">
+		<![CDATA[
+		SELECT * FROM (SELECT A.*, ROWNUM as RNUM 
+		FROM (SELECT * FROM NOTICE ORDER BY NID DESC, NGROUP DESC, NSTEP ASC)A)
+		WHERE RNUM < 11
+		]]>
+	</select> 
+	
+	<!-- 공지사항 메인에 4개까지 불러오기 -->
+	<select id = "noticeList4" parameterType = "int" resultType = "com.team.lib.dto.nDto">
+		<![CDATA[
+		SELECT * FROM (SELECT A.*, ROWNUM as RNUM 
+		FROM (SELECT * FROM NOTICE ORDER BY NID DESC, NGROUP DESC, NSTEP ASC)A)
+		WHERE RNUM < 5
+		]]>
+	</select> 
+	
+	<!-- 공지사항 상세 보기 -->
+	<select id = "nContentView" parameterType = "int" resultType = "com.team.lib.dto.nDto">
+		SELECT * FROM NOTICE WHERE NID = #{nId}
+	</select>
+	
+	<!-- 공지사항 등록 -->
+	<insert id = "writeNotice" parameterType = "com.team.lib.dto.nDto">
+		INSERT INTO NOTICE(NID, NTITLE, NWRITER, NCONTENT, NDATE, 
+		<if test="nFile != null">NFILE, </if> NINDENT, NGROUP, NSTEP)
+		VALUES (NOTICE_SEQ.nextval, #{nTitle}, #{nWriter}, #{nContent}, sysdate, 
+		<if test = "nFile != null">#{nFile}, </if> 0, NOTICE_SEQ.currval, 0)
+	</insert>
+	
+	<!-- 공지사항 수정 -->
+	<update id = "modifyN" parameterType = "com.team.lib.dto.nDto">
+		UPDATE NOTICE SET NTITLE = #{nTitle}, NCONTENT = #{nContent} WHERE NID = #{nId}
+	</update>
+	
+	<!-- 공지사항 삭제 -->
+	<delete id = "deleteN" parameterType = "int">
+		DELETE FROM NOTICE WHERE NID = #{nId}
+	</delete>
+	
+	<!-- 공지사항 페이징 -->
+	<select id="nPageList" parameterType="int" resultType="com.team.lib.dto.nDto">
+		<![CDATA[
+		SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+		FROM(SELECT * FROM NOTICE ORDER BY NID DESC)A)
+		WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 강좌 목록 -->
+	<select id = "cList" parameterType = "int" resultType = "com.team.lib.dto.ClassDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*, ROWNUM as RNUM FROM (SELECT CID, CTITLE, TO_CHAR(CSTARTREG, 'YYYY-MM-DD') AS CSTARTREG, 
+			TO_CHAR(CENDREG, 'YYYY-MM-DD') AS CENDREG, TO_CHAR(CSTART, 'YYYY-MM-DD') AS CSTART, TO_CHAR(CEND, 'YYYY-MM-DD') AS CEND,
+			CPHOTO FROM CLASS ORDER BY CID DESC)A) WHERE RNUM < 7
+		]]>
+	</select>
+	
+	<!-- 강좌 상세 보기 -->
+	<select id = "cContentView" parameterType = "int" resultType = "com.team.lib.dto.ClassDto">
+		SELECT CID, CNAME, TO_CHAR(CSTARTREG, 'YYYY-MM-DD') AS CSTARTREG, TO_CHAR(CENDREG, 'YYYY-MM-DD') AS CENDREG, CTITLE, CCONTENT, 
+		TO_CHAR(CSTART, 'YYYY-MM-DD') AS CSTART, TO_CHAR(CEND, 'YYYY-MM-DD') AS CEND,
+		CNUMBER, CPLACE, CPRICE, CPHOTO, CHOUR, CGROUP FROM CLASS WHERE CID = #{cId}
+	</select>
+	
+	<!-- 강좌 등록 -->
+	<insert id = "writeClass" parameterType = "com.team.lib.dto.ClassDto">
+		INSERT INTO CLASS (CID, CNAME, CSTARTREG, CENDREG, CTITLE, CCONTENT, CSTART, CEND, CNUMBER, CPLACE, CPRICE, <if test="cPhoto != null">cPHOTO, </if> CHOUR, CGROUP)
+		VALUES (CLASS_SEQ.nextval, #{cName}, TO_DATE(#{cStartReg}, 'YYYY/MM/DD'), TO_DATE(#{cEndReg}, 'YYYY/MM/DD'), 
+		#{cTitle}, #{cContent}, TO_DATE(#{cStart}, 'YYYY/MM/DD'), TO_DATE(#{cEnd}, 'YYYY/MM/DD'), #{cNumber}, #{cPlace}, #{cPrice},
+		<if test="cPhoto != null">#{cPhoto}, </if> #{cHour}, #{cGroup})
+	</insert>	
+	
+	<!-- 강좌 삭제 -->
+	<delete id = "deleteClass" parameterType = "int">
+		DELETE FROM CLASS WHERE CID = #{cId}
+	</delete>
+	
+	<!-- 강좌 수정 -->
+	<update id = "modifyClass" parameterType = "com.team.lib.dto.ClassDto">
+		UPDATE CLASS SET 
+			CNAME = #{cName}, CSTARTREG = TO_DATE(#{cStartReg}, 'YYYY/MM/DD'), CENDREG = TO_DATE(#{cEndReg}, 'YYYY/MM/DD'), 
+			CTITLE = #{cTitle}, CCONTENT = #{cContent},	CSTART = TO_DATE(#{cStart}, 'YYYY/MM/DD'), CEND = TO_DATE(#{cEnd}, 'YYYY/MM/DD'), 
+			CNUMBER = #{cNumber}, CPLACE = #{cPlace}, CPRICE = #{cPrice}, CHOUR = #{cHour}, CGROUP = #{cGroup} WHERE CID = #{cId}
+	</update>
+	
+	<!-- 강좌 페이징 -->
+	<select id="cPageList" parameterType="int" resultType="com.team.lib.dto.ClassDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*, ROWNUM as RNUM FROM (SELECT CID, CTITLE, TO_CHAR(CSTARTREG, 'YYYY-MM-DD') AS CSTARTREG, 
+			TO_CHAR(CENDREG, 'YYYY-MM-DD') AS CENDREG, TO_CHAR(CSTART, 'YYYY-MM-DD') AS CSTART, TO_CHAR(CEND, 'YYYY-MM-DD') AS CEND,
+			CPHOTO FROM CLASS ORDER BY CID DESC)A) WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 6
+		]]>
+	</select>
+	
+	<!-- 강좌 검색 -->
+	<select id = "searchClass" resultType = "com.team.lib.dto.ClassDto">
+		SELECT * FROM CLASS 
+			<if test = "keyword != null">
+				WHERE CTITLE LIKE '%' || #{keyword} || '%'
+			</if>
+			ORDER BY CID DESC 
+	</select>
+	
+	<!-- 문화 행사 목록 -->
+	<select id = "eventList" resultType = "com.team.lib.dto.EventDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*, ROWNUM as RNUM FROM (SELECT EID, ETITLE, EGROUP, TO_CHAR(EWRITEDATE, 'YYYY-MM-DD') 
+			AS EWRITEDATE FROM EVENT ORDER BY EID DESC)A) WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 문화 행사 상세 보기 -->
+	<select id = "eContentView" parameterType = "int" resultType = "com.team.lib.dto.EventDto">
+		SELECT EID, ETITLE, EGROUP, ECONTENT, 
+		TO_CHAR(EWRITEDATE, 'YYYY-MM-DD') AS EWRITEDATE, EPHOTO, TO_CHAR(ESTARTREG, 'YYYY-MM-DD') AS ESTARTREG, 
+		TO_CHAR(EENDREG, 'YYYY-MM-DD') AS EENDREG, EPLACE, EHOUR, TO_CHAR(ESTART, 'YYYY-MM-DD') AS ESTART, 
+		TO_CHAR(EEND, 'YYYY-MM-DD') AS EEND FROM EVENT WHERE EID = #{eId}
+	</select>
+	
+	<!-- 문화 행사 등록 -->
+	<insert id = "writeEvent" parameterType = "com.team.lib.dto.EventDto">
+		INSERT INTO EVENT (EID, ETITLE, EGROUP, ECONTENT, EWRITEDATE, <if test = "ePhoto != null">EPHOTO,</if> ESTARTREG, EENDREG, EPLACE, EHOUR, ESTART, EEND)
+		VALUES(EVENT_SEQ.nextval, #{eTitle}, #{eGroup}, #{eContent}, SYSDATE, <if test = "ePhoto != null">#{ePhoto}, </if>
+		TO_DATE(#{eStartReg}, 'YYYY/MM/DD'), TO_DATE(#{eEndReg}, 'YYYY/MM/DD'), #{ePlace}, #{eHour}, TO_DATE(#{eStart}, 'YYYY/MM/DD'), TO_DATE(#{eEnd}, 'YYYY/MM/DD'))
+	</insert>
+	
+	<!-- 문화 행사 삭제 -->
+	<delete id = "deleteEvent" parameterType = "int">
+		DELETE FROM CLASS WHERE EID = #{eId}
+	</delete>
+	
+	<!-- 문화 행사 수정 -->
+	<update id = "modifyEvent" parameterType = "com.team.lib.dto.EventDto">
+		UPDATE EVENT SET 
+			ETITLE = #{eTitle}, EGROUP = #{eGroup}, ECONTENT = #{eContent}, EWRITEDATE = TO_DATE(#{eWriteDate}, 'YYYY/MM/DD'),
+			ESTARTREG = TO DATE(#{eStartReg}, 'YYYY/MM/DD'), EENDREG = TO_DATE(#{eEndReg}, 'YYYY/MM/DD'), EPLACE = #{ePlace},
+			EHOUR = #{eHour}, ESTART = TO_DATE(#{eStart}, 'YYYY/MM/DD'), EEND = TO_DATE(#{eEnd}, 'YYYY/MM/DD') WHERE EID = #{eId}
+			    
+	</update>
+	
+	<!-- 문화 행사 페이징 -->
+	<select id = "ePageList" parameterType = "int" resultType = "com.team.lib.dto.EventDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*, ROWNUM as RNUM FROM (SELECT EID, ETITLE, EGROUP, TO_CHAR(EWRITEDATE, 'YYYY-MM-DD') 
+			AS EWRITEDATE FROM EVENT ORDER BY EID DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 문화 행사 검색 -->
+	<select id = "searchEvent" resultType = "com.team.lib.dto.EventDto">
+		SELECT EID, ETITLE, EGROUP, TO_CHAR(EWRITEDATE, 'YYYY-MM-DD') AS EWRITEDATE FROM EVENT WHERE
+			<choose>
+				<when test = "ekeyword != null">
+					EGROUP = #{eGroup} AND ETITLE LIKE '%' || #{ekeyword} || '%' ORDER BY EID DESC
+				</when>
+				<when test = "ekeyword == null">
+					EGROUP = #{eGroup} ORDER BY EID DESC
+				</when>
+			</choose>	
+	</select>
+	
+
+		
+	
+	<!-- 도서관리 리스트 불러오기 -->
+	<select id="bookList" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO ORDER BY BOOKID DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 관리페이지 회원관리 회원 리스트 -->
+	<select id="userList" resultType="com.team.lib.dto.LibUserDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM LIBRARYUSER ORDER BY PDATE DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 회원리스트 페이징 -->	
+	<select id="userPageList" parameterType="int" resultType="com.team.lib.dto.LibUserDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM LIBRARYUSER ORDER BY PDATE DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 권한변경(관리자) -->
+	<update id="authorityChange" parameterType="com.team.lib.dto.LibUserDto">
+		UPDATE LIBRARYUSER SET AUTH = 'ROLE_ADMIN' WHERE PID = #{pid}
+	</update>
+
+	<!-- 권한변경(일반회원) -->
+	<update id="authorityChange2" parameterType="com.team.lib.dto.LibUserDto">
+		UPDATE LIBRARYUSER SET AUTH = 'ROLE_USER' WHERE PID = #{pid}
+	</update>
+
+	<!-- 회원 검색 -->
+	<select id="adminUserSearch" resultType="com.team.lib.dto.LibUserDto">
+		SELECT * FROM LIBRARYUSER WHERE 
+		<choose>
+			<when test="type != null and type.equals('name')">
+				PNAME LIKE '%' || #{keyword} || '%' ORDER BY PDATE DESC
+			</when>
+			<when test="type != null and type.equals('id')">
+				PID LIKE '%' || #{keyword} || '%' ORDER BY PDATE DESC
+			</when>
+		</choose>
+	</select>
+	
+	<!-- 회원 상세정보 -->
+	<select id="userDetail" parameterType="String" resultType="com.team.lib.dto.LibUserDto">
+		SELECT * FROM LIBRARYUSER WHERE PID = #{pid}
+	</select>
+	
+	<!-- 회원탈퇴(어드민권한) -->
+	<delete id="adminUserDelete" parameterType="String">
+		DELETE FROM LIBRARYUSER WHERE PID = #{pid}
+	</delete>
+	
+	<!-- 도서 정보 수정 -->
+	<update id="bookModify" parameterType="com.team.lib.dto.BookListDto">
+		UPDATE BOOK_INFO SET BOOKTITLE = #{bookTitle}, BOOKORITITLE = #{bookOriTitle}, WRITER = #{writer}, 
+		BOOKTYPE = #{bookType}, PUBLISHER = #{publisher}, FORM = #{form}, ISBN = #{isbn}, IMG = #{img}, 
+		BOOKCONTENT = #{bookContent}, BOOKWRITER = #{bookWriter}, BOOKINDEX = #{bookIndex}, 
+		GENRE = #{genre}, YEAR = #{year}, RECOMMEND = #{recommend}, BESTSELLER = #{bestseller}
+		WHERE BOOKID = #{bookId}
+	</update>
+	
+	<!-- 도서 삭제 -->
+	<delete id="bookDel" parameterType="com.team.lib.dto.BookListDto">
+		DELETE FROM BOOK_INFO WHERE BOOKID = #{bookId}
+	</delete>
+	
+	<!-- 도서관리 페이징 -->
+	<select id="aBookPList" parameterType="int" resultType="com.team.lib.dto.BookListDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_INFO ORDER BY BOOKID DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 도서관리 검색 -->
+	<select id="adminBookSearch" resultType="com.team.lib.dto.BookListDto">
+		SELECT * FROM BOOK_INFO WHERE 
+		<choose>
+			<when test="type != null and type.equals('title')">
+				BOOKTITLE LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+			<when test="type != null and type.equals('writer')">
+				WRITER LIKE '%' || #{keyword} || '%' ORDER BY BOOKID DESC
+			</when>
+			<when test="type != null and type.equals('isbn')">
+				ISBN LIKE #{keyword} ORDER BY BOOKID DESC
+			</when>
+		</choose>
+	</select>
+	
+	<!-- 캘린더 insert -->
+	<insert id="calendarInsert" parameterType="com.team.lib.dto.LibCalendarDto">
+		INSERT INTO LIBRARYCALENDAR 
+		VALUES(LIBRARYCALENDAR_SEQ.NEXTVAL, #{cId}, #{cTitle}, #{cStart}, #{cEnd}, #{tStart}, #{tEnd}, #{cAllDay})	
+	</insert>	
+	
+	<!-- 캘린더 리스트 -->
+	<select id="calendarList" parameterType="String" resultType="com.team.lib.dto.LibCalendarDto">
+		SELECT * FROM LIBRARYCALENDAR WHERE CID = #{cId} ORDER BY CNO ASC
+	</select>
+	
+	<!-- 캘린더 수정 -->
+	<update id="calendarUpdate" parameterType="com.team.lib.dto.LibCalendarDto">
+		UPDATE LIBRARYCALENDAR SET CSTART = #{cStart}, CEND = #{cEnd}, CTITLE = #{cTitle} WHERE CNO = #{cNo}
+	</update>
+	
+	<!-- 캘린더 삭제 -->
+	<delete id="calendarDelete" parameterType="com.team.lib.dto.LibCalendarDto">
+		DELETE FROM LIBRARYCALENDAR WHERE CNO = #{cNo}
+	</delete>	
+	
+	<!-- 희망도서 신청 -->
+	<insert id="bookApplication" parameterType="com.team.lib.dto.BookApplicationDto">
+		INSERT INTO BOOKAPPLICATION (APPNO, APPUSER, APPBOOKTITLE, APPBOOKWRITER, APPBOOKPUB, APPBOOKGENRE, APPSTATE)
+		VALUES (BOOKAPPLICATION_SEQ.NEXTVAL, #{appUser}, #{appBookTitle}, #{appBookWriter}, #{appBookPub}, #{appBookGenre}, #{appState})
+	</insert>
+	
+	<!-- 희망도서 목록 -->
+	<select id="adminApplication" resultType="com.team.lib.dto.BookApplicationDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOKAPPLICATION ORDER BY APPNO DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 희망도서 관리 페이징 -->
+	<select id="adminAppList" parameterType="int" resultType="com.team.lib.dto.BookApplicationDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOKAPPLICATION ORDER BY APPNO DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- 희망도서 처리상태 변경 -->
+	<update id="appStateChange" parameterType="com.team.lib.dto.BookApplicationDto">
+		UPDATE BOOKAPPLICATION SET APPSTATE = #{appState} WHERE APPNO = #{appNo}
+	</update>
+	
+	<!-- 회원 희망도서 목록 -->
+	<select id="userApplication" resultType="com.team.lib.dto.BookApplicationDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOKAPPLICATION ORDER BY APPNO DESC)A)
+			WHERE RNUM < 11 AND APPUSER = #{user_id}
+		]]>
+	</select>
+	
+	<!-- 회원 도서예약 목록 -->
+	<select id="userReservation" resultType="com.team.lib.dto.BookReservationDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_RESERVATION ORDER BY RESERVATIONNO DESC)A)
+			WHERE RNUM < 6 AND RESERVATIONUSER = #{user_id}
+		]]>
+	</select>
+	
+	<!-- 도서 예약 -->
+	<insert id="bookReservation" parameterType="com.team.lib.dto.BookReservationDto">
+		INSERT INTO BOOK_RESERVATION (RESERVATIONNO, RESERVATIONTITLE, RESERVATIONUSER, BOOKID, BORROWID, CALLNUM, BOOKPOSSIBLE)
+		VALUES (BOOK_RESERVATION_SEQ.NEXTVAL, #{reservationTitle}, #{reservationUser}, #{bookId}, #{borrowId}, #{callNum}, #{bookPossible})
+	</insert>
+	
+	<!-- 예약상태 갱신 -->
+	<update id="booking" parameterType="com.team.lib.dto.BookBorrowInfoDto">
+		UPDATE BOOK_BORROW_INFO SET BOOKING = '예약불가' WHERE BORROWID = #{borrowId}
+	</update>
+	
+	<!-- 예약 -->
+	<select id="bookReservationPage" parameterType="int" resultType="com.team.lib.dto.BookBorrowInfoDto">
+		SELECT * FROM BOOK_BORROW_INFO WHERE BORROWID = #{borrowId}
+	</select>
+	
+	<!-- 예약 목록 -->
+	<select id="adminReservationList" resultType="com.team.lib.dto.BookReservationDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_RESERVATION ORDER BY RESERVATIONNO DESC)A)
+			WHERE RNUM < 11
+		]]>
+	</select>
+	
+	<!-- 어드민 예약취소 -->
+	<delete id="adminReservationCancel" parameterType="int">
+		DELETE FROM BOOK_RESERVATION WHERE BORROWID = #{borrowId}
+	</delete>
+	
+	<!-- 어드민 예약취소시 예약상태 변경 -->
+	<update id="adminReservationChange" parameterType="com.team.lib.dto.BookBorrowInfoDto">
+		UPDATE BOOK_BORROW_INFO SET BOOKING = '예약가능' WHERE BORROWID = #{borrowId}
+	</update>
+	
+	<!-- 예약 페이징 -->
+	<select id="adminReservationPageList" parameterType="int" resultType="com.team.lib.dto.BookReservationDto">
+		<![CDATA[
+			SELECT * FROM (SELECT A.*,ROWNUM AS RNUM
+			FROM(SELECT * FROM BOOK_RESERVATION ORDER BY RESERVATIONNO DESC)A)
+			WHERE RNUM  >= #{startNo} AND RNUM <= #{startNo} + 9
+		]]>
+	</select>
+	
+	<!-- top-menu의 검색 -->
+	<select id = "searchMain" resultType = "com.team.lib.dto.BookListDto">
+		SELECT * FROM BOOK_INFO WHERE 
+		<if test = "mainkeyword != null">
+			WRITER LIKE '%' || #{mainkeyword} || '%' 
+			OR BOOKTITLE LIKE '%' ||  #{mainkeyword} || '%'
+			OR PUBLISHER LIKE '%' || #{mainkeyword} || '%'</if>
+		ORDER BY BOOKID DESC
+	</select>
+	
+		<!-- 소장자료 검색 -->
+	<select id = "searchBook" resultType = "com.team.lib.dto.BookListDto">
+		SELECT * FROM BOOK_INFO
+			<if test = "srchtype1 == ''">
+				WHERE BOOKTITLE LIKE '%' || #{srchkeyword1} || '%' 
+				OR WRITER LIKE '%' || #{srchkeyword1} || '%' 
+				OR PUBLISHER LIKE '%' || #{srchkeyword1} || '%' 
+			</if> 
+			<if test = "srchtype1 != '' and srchtype2 == '' and srchtype3 == ''"> 
+				<choose>
+					<when test = "srchtype1.equals('booktitle')">
+						WHERE BOOKTITLE LIKE '%' || #{srchkeyword1} || '%' ORDER BY BOOKID DESC
+					</when>
+					<when test = "srchtype1.equals('writer')">
+						WHERE WRITER LIKE '%' || #{srchkeyword1} || '%' ORDER BY BOOKID DESC 
+					</when>
+					<when test = "srchtype1.equals('publisher')">
+						WHERE PUBLISHER LIKE  '%' || #{srchkeyword1} || '%' ORDER BY BOOKID DESC
+					</when>
+				</choose>
+			</if>
+			<if test = "srchtype1 != '' and srchtype2 != '' and srchtype3 == ''">
+				<choose>
+					<when test = "srchtype1.equals('booktitle') and srchtype2.equals('writer')">
+						WHERE BOOKTITLE LIKE '%' || #{srchkeyword1} || '%' AND WRITER LIKE '%' || #{srchkeyword2} || '%' 
+					</when>
+					<when test = "srchtype1.equals('booktitle') and srchtype2.equals('publisher')">
+						WHERE BOOKTITLE LIKE '%' || #{srchkeyword1} || '%' AND PUBLISHER LIKE '%' || #{srchkeyword2} || '%'  
+					</when>
+					<when test = "srchtype1.equals('writer') and srchtype2.eqauls('publisher')">
+						WHERE WRITER LIKE '%' || #{srchkeyword1} || '%' AND PUBLISHER LIKE  '%' || #{srchkeyword2} || '%' 
+					</when>
+					<when test = "srchtype1.equals('writer') and srchtype2.equals('booktitle')">
+						WHERE WRITER LIKE '%' || #{srchkeyword1} || '%' AND BOOKTITLE LIKE '%' || #{srchkeyword2} || '%' 
+					</when>
+					<when test = "srchtype1.equals('publisher') and srchtype2.equals('booktitle')">
+						WHERE PUBLISHER LIKE '%' || #{srchkeyword1} || '%' AND BOOKTITLE LIKE '%' || #{srchkeyword2} || '%' 
+					</when>
+					<when test = "srchtype1.equals('publisher') and srchtype2.equals('writer')">
+						WHERE PUBLISHER LIKE '%' || #{srchkeyword1} || '%' AND WRITER LIKE '%' || #{srchkeyword2} || '%' 
+					</when>
+				</choose>
+				ORDER BY BOOKID DESC 
+			</if>
+			<if test = "srchtype1 != '' and srchtype2 != '' and srchtype3 != ''">
+				<choose>
+					<when test = "srchtype1.equals('booktitle')">
+						WHERE BOOKTITLE LIKE '%' || #{srchkeyword1} || '%' AND
+						<if test = "srchtype2.equals('writer') and srchtype3.equals('publisher')">
+							WRITER LIKE '%' || #{srchkeyword2} || '%' AND PUBLISHER LIKE '%' || #{srchkeyword3} || '%' ORDER BY BOOKID DESC
+						</if>
+						<if test = "srchtype2.equals('publisher') and srchtype3.equals('writer')">
+							PUBLISHER LIKE '%' || #{srchkeyword2} || '%' AND WRITER LIKE '%' || #{srchkeyword3} || '%' ORDER BY BOOKID DESC
+						</if> 
+					</when>
+					<when test = "srchtype1.equals('writer')">
+						WHERE WRITER LIKE '%' || #{srchkeyword1} || '%' AND 
+						<if test = "srchtype2.equals('booktitle') and srchtype3.equals('publisher')">
+							BOOKTITLE LIKE '%' || #{srchkeyword2} || '%' AND PUBLISHER LIKE '%' || #{srchkeyword3} || '%' ORDER BY BOOKID DESC
+						</if>
+						<if test = "srchtype2.equals('publisher') and srchtype3.equals('booktitle')">
+							PUBLISHER LIKE '%' || #{srchkeyword2} || '%' AND BOOKTITLE LIKE '%' || #{srchkeyword3} || '%' ORDER BY BOOKID DESC
+						</if>
+					</when>
+					<when test = "srchtype1.equals('publisher')">
+						WHERE PUBLISHER LIKE '%' || #{srchkeyword1} || '%' AND 
+						<if test = "srchtype2.equals('booktitle') and srchtype3.equals('writer')">
+							BOOKTITLE LIKE '%' || #{srchkeyword2} || '%' AND WRITER LIKE '%' || #{srchkeyword3} || '%' ORDER BY BOOKID DESC
+						</if>
+						<if test = "srchtype2.equals('writer') and srchtype3.equals('booktitle')">
+							WRITER LIKE '%' || #{srchkeyword2} || '%' AND BOOKTITLE LIKE '%' || #{srchkeyword3} || '%' ORDER BY BOOKID DESC
+						</if>
+					</when>
+				</choose>
+			</if>
+	</select>
+	
+</mapper>

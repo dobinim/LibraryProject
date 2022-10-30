@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security 
+		http://www.springframework.org/schema/security/spring-security.xsd"
+>
+
+	<!-- security를 적용하지 않는 요청 경로 처리 (CKEditor) -->
+	<http pattern="/nCkedit" security="none"></http>
+
+	<http auto-config="true" use-expressions="true">
+		<!-- login 이후 금지된 요청을 할 경우 -->
+		<access-denied-handler error-page="/home"/>
+		
+		<!-- iframe 제한 해제 -->
+		<headers>
+			<frame-options disabled="true"/>
+		</headers>
+		
+		<!-- intercept-url 태그를 사용하여 각 요청 별 권한 지정 -->
+		
+		<intercept-url pattern="/home" access="permitAll"/>
+		<intercept-url pattern="/home_view" access="permitAll"/>
+		<intercept-url pattern="/" access="permitAll"/> <!-- 처음 접근 페이지 -->
+		<intercept-url pattern="/error404" access="permitAll"/>
+		<intercept-url pattern="/error404_view" access="permitAll"/>
+		<intercept-url pattern="/error500" access="permitAll"/>
+		<intercept-url pattern="/error500_view" access="permitAll"/>
+		<intercept-url pattern ="/html/**" access="permitAll"/>
+		<intercept-url pattern="/js/**" access="permitAll"/>
+		<intercept-url pattern="/media/**" access="permitAll"/>
+		<intercept-url pattern="/upimage/**" access="permitAll"/>
+		<intercept-url pattern="/upclass/**" access="permitAll"/>
+		<intercept-url pattern="/upnotice/**" access="permitAll"/>
+		<intercept-url pattern="/myInterest" access="permitAll"/>
+		<intercept-url pattern="/myInterest_view" access="permitAll"/>
+		<intercept-url pattern="/interestBook" access="permitAll"/>
+		<intercept-url pattern="/idCheck" access="permitAll"/>
+		<intercept-url pattern="/application" access="permitAll"/>
+		<intercept-url pattern="/application_view" access="permitAll"/>
+		<intercept-url pattern="/application_notice" access="permitAll"/>
+		<intercept-url pattern="/cList" access="permitAll"/>
+		<intercept-url pattern="/classboard_menu" access="permitAll"/>
+		<intercept-url pattern="/classList_view" access="permitAll"/>
+		<intercept-url pattern="/cPlist" access="permitAll"/>
+		<intercept-url pattern="/searchClass" access="permitAll"/>
+		<intercept-url pattern="/cListPage_view" access="permitAll"/>
+		<intercept-url pattern="/eventList" access="permitAll"/>
+		<intercept-url pattern="/eContentView" access="permitAll"/>
+		<intercept-url pattern="/eventContent_view" access="permitAll"/>
+		<intercept-url pattern="/eventWrite" access="hasRole('ROLE_ADMIN')"/>
+		<intercept-url pattern="/eventModify" access="hasRole('ROLE_ADMIN')"/>
+		<intercept-url pattern="/eventModify_view" access="hasRole('ROLE_ADMIN')"/>	
+		<intercept-url pattern="/eventListPage_view" access="permitAll"/>	
+		<intercept-url pattern="/modifyEvent" access="hasRole('ROLE_ADMIN')"/>		
+		<intercept-url pattern="/searchEvent" access="permitAll"/>
+		<intercept-url pattern="/cContentView" access="permitAll"/>
+		<intercept-url pattern="/noticeList_view" access="permitAll"/>
+		<intercept-url pattern="/nList" access="permitAll"/>
+		<intercept-url pattern="/nPlist" access="permitAll"/>
+		<intercept-url pattern="/nContentView" access="permitAll"/>
+		<intercept-url pattern="/noticeView" access="permitAll"/>
+		<intercept-url pattern="/noticeboard_menu" access="permitAll"/>
+		<intercept-url pattern="/bestSellerSearch" access="permitAll"/>
+		<intercept-url pattern="/bestsellerList" access="permitAll"/>
+		<intercept-url pattern="/bestsellerList_view" access="permitAll"/>
+		<intercept-url pattern="/bestListUrl" access="permitAll"/>
+		<intercept-url pattern="/bestsellerListPage_view" access="permitAll"/>
+		<intercept-url pattern="/libCalendar" access="permitAll"/>
+		<intercept-url pattern="/libCalendar_view" access="permitAll"/>
+		<intercept-url pattern="/calendar" access="permitAll"/>
+		<intercept-url pattern="/map" access="permitAll"/>
+		<intercept-url pattern="/map_view" access="permitAll"/>
+		<intercept-url pattern="/newListSearch" access="permitAll"/>
+		<intercept-url pattern="/list_view" access="permitAll"/>
+		<intercept-url pattern="/listPage_view" access="permitAll"/>
+		<intercept-url pattern="/bookList_menu" access="permitAll"/>
+		<intercept-url pattern="/bookpage" access="permitAll"/>
+		<intercept-url pattern="/newList" access="permitAll"/>
+		<intercept-url pattern="/newListUrl" access="permitAll"/>
+		<intercept-url pattern="/recList" access="permitAll"/>
+		<intercept-url pattern="/recListSearch" access="permitAll"/>
+		<intercept-url pattern="/rec_booklist" access="permitAll"/>
+		<intercept-url pattern="/recListUrl" access="permitAll"/>
+		<intercept-url pattern="/rec_booklistPage" access="permitAll"/>
+		<intercept-url pattern="/content_view" access="permitAll"/>
+		<intercept-url pattern="/bestQnA" access="permitAll"/>
+		<intercept-url pattern="/noticeRegister" access="hasRole('ROLE_ADMIN')"/>
+		<intercept-url pattern="/plist" access="permitAll"/>
+		<intercept-url pattern="/qnaSearch" access="permitAll"/>
+		<intercept-url pattern="/qnaPage_view" access="permitAll"/>
+		<intercept-url pattern="/qnaList_view" access="permitAll"/>
+		<intercept-url pattern="/qnaList" access="permitAll"/>
+		<intercept-url pattern="/qna_view" access="permitAll"/>
+		<intercept-url pattern="/noticeRegister" access="hasRole('ROLE_ADMIN')"/>
+		<intercept-url pattern="/search_view" access="permitAll"/>
+		<intercept-url pattern="/search" access="permitAll"/>
+		<intercept-url pattern="/searchtop" access="permitAll"/>		
+		<intercept-url pattern="/searchBook" access="permitAll"/>		
+		<intercept-url pattern="/search_view" access="permitAll"/>			
+		<intercept-url pattern="/searchMain_view" access="permitAll"/>		
+		<intercept-url pattern="/searchMainPage_view" access="permitAll"/>		
+		<intercept-url pattern="/introduction_view" access="permitAll"/>
+		<intercept-url pattern="/introduction" access="permitAll"/>
+		<intercept-url pattern="/intro_menu" access="permitAll"/>
+		<intercept-url pattern="/processLogin" access="permitAll"/>
+		<intercept-url pattern="/join_view" access="isAnonymous()"/>
+		<intercept-url pattern="/login_view" access="isAnonymous()"/>
+		<intercept-url pattern="/join" access="isAnonymous()"/>
+		<intercept-url pattern="/login" access="isAnonymous()"/> <!-- 로그인을 하지 않은 사람만 접근 -->
+		<intercept-url pattern="/**" access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN', 'ROLE_MANAGE')" requires-channel="https"/>
+		<!-- auth 등급이 하나이면 hasRole()사용, 여러개면 hasAnyRole()사용 -->
+		
+		<!-- form-login 설정 -->
+		<!-- 미로그인 자가 로그인 이후 접속 가능한 페이지 접속을 시도할 경우 /login_view로 요청 -->
+		<form-login
+			login-processing-url = "/login"
+			login-page = "/login_view"
+			username-parameter = "pid"
+			password-parameter = "ppw"
+			default-target-url = "/main"
+			authentication-failure-url = "/processLogin?error=1"
+			always-use-default-target = "true" 
+		/>
+		
+		<!-- form-logout 설정 -->
+		<logout invalidate-session="true" logout-url="/logout"
+			logout-success-url = "/processLogin?logout=1" delete-cookies="JSESSIONID,remember-me"/>
+		
+		<!-- csrf 설정 -->	
+		<csrf disabled="false"/>
+	</http>
+	
+	<!-- DB이용 인증처리 (authentication) -->
+	<authentication-manager>
+		<authentication-provider user-service-ref="customUserDetailsService">
+			<password-encoder ref="passwordEncoder"/>
+		</authentication-provider>
+	</authentication-manager>
+	
+	<!-- user-service-ref="customUserDetailsService"객체를 나타내는 bean -->
+	<!-- 인증처리 클래스. UserDetailsService인터페이스를 구현한 클래스로 개발자가 만듦 -->
+	<beans:bean id="customUserDetailsService" class="com.team.lib.security.CustomUserDetailsService"/>
+	
+	<!-- 암호화 된 패스워드 처리 bean -->
+	<beans:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+	
+</beans:beans>
